@@ -1,207 +1,288 @@
-# TaskFlow — React + Redux Revision Reference
+# TaskFlow
 
-This project covers every core concept likely to appear on a React/Redux exam.
-Use this file as a quick reference when you are under pressure and need to recall a pattern fast.
+TaskFlow is a task management app built with React, Vite, Redux Toolkit, React Router, Context API, custom hooks, Axios, and a `json-server` mock API. It is also a React exam reference project: each feature is tied to a common React pattern you may need to rebuild or explain quickly.
 
----
+The app lets users register, log in, view a dashboard, manage their own tasks, search and sort tasks through URL query params, switch between light and dark themes, and use an admin-only page to view and assign tasks across users.
 
-## Table of Contents
+## Create This App From Scratch
 
-1. [Project Structure](#project-structure)
-2. [How to Run](#how-to-run)
-3. [Core React Hooks](#core-react-hooks)
-4. [Redux Toolkit](#redux-toolkit)
-5. [React Router](#react-router)
-6. [Context API](#context-api)
-7. [Custom Hooks](#custom-hooks)
-8. [Class Components and Error Boundaries](#class-components-and-error-boundaries)
-9. [Controlled Forms](#controlled-forms)
-10. [Conditional Rendering](#conditional-rendering)
-11. [Derived State](#derived-state)
-12. [Exam Pattern Cheat Sheet](#exam-pattern-cheat-sheet)
+If you need to recreate the project during practice or an exam, start with Vite:
 
----
-
-## Project Structure
-
-```
-src/
-  components/
-    Navbar.jsx          # Navigation bar, uses useSelector + useContext
-    ProtectedRoute.jsx  # Redirects unauthenticated users
-    AdminRoute.jsx      # Redirects non-admin users
-    ErrorBoundary.jsx   # Class component, catches render errors
-    SkeletonCard.jsx    # Loading placeholder UI
-  context/
-    ThemeContext.jsx     # Global dark/light theme via Context API
-  hooks/
-    useLocalStorage.js  # Custom hook — useState synced to localStorage
-    useTaskStats.js     # Custom hook — derived stats from Redux state
-  pages/
-    Login.jsx           # Controlled form, dispatches loginUser thunk
-    Register.jsx        # Controlled form with role selection
-    Dashboard.jsx       # Shows task stats from Redux
-    Tasks.jsx           # Full task CRUD, search, sort, edit modal
-    AllTasks.jsx        # Admin-only — all users tasks + assign form
-  redux/
-    store.js            # configureStore
-    authSlice.js        # Auth state: login, register, logout
-    tasksSlice.js       # Tasks state: fetch, add, delete, update
-  App.jsx               # Router setup, all routes defined here
-  main.jsx              # Entry point — renders Provider + App
-  index.css             # Global styles + CSS variables for theming
-db.json                 # json-server mock database (users + tasks)
+```bash
+npm create vite@latest taskflow -- --template react
+cd taskflow
+npm install
 ```
 
----
+Install the app tools used in this project:
+
+```bash
+npm install @reduxjs/toolkit react-redux react-router-dom axios
+npm install --save-dev json-server
+```
+
+What each tool is for:
+
+| Tool | Why this app uses it |
+|---|---|
+| `vite` | Runs the React dev server and builds the app. |
+| `@reduxjs/toolkit` | Creates Redux slices, async thunks, reducers, and the store. |
+| `react-redux` | Connects React components to Redux with `Provider`, `useSelector`, and `useDispatch`. |
+| `react-router-dom` | Handles pages, redirects, protected routes, links, navigation, and URL search params. |
+| `axios` | Makes API requests to the mock backend. |
+| `json-server` | Runs `db.json` as a local REST API. |
+
+Optional: add an API script to `package.json`:
+
+```json
+"api": "json-server --watch db.json --port 3001"
+```
+
+Then your scripts can look like this:
+
+```json
+"scripts": {
+  "dev": "vite",
+  "start": "vite",
+  "api": "json-server --watch db.json --port 3001",
+  "build": "vite build",
+  "preview": "vite preview"
+}
+```
 
 ## How to Run
 
-You need two terminals running at the same time.
+Start the mock API:
 
-**Terminal 1 — Mock API:**
 ```bash
 npx json-server --watch db.json --port 3001
 ```
 
-**Terminal 2 — React app:**
+Start the React app in another terminal:
+
 ```bash
 npm run dev
 ```
 
-App runs at `http://localhost:5173`
-API runs at `http://localhost:3001`
+The API runs on `http://localhost:3001`. The Vite app usually runs on `http://localhost:5173`.
 
----
+## Test Accounts
 
-## Core React Hooks
+| Role | Email | Password |
+|---|---|---|
+| Admin | `janicejuniour@gmail.com` | `password123` |
+| User | `janicewambuingugi@gmail.com` | `Pass123` |
+| User | `spencerngugi@gmail.com` | `Password123` |
 
-### useState
+## What the App Does
 
-Declares a piece of state local to a component. Re-renders the component when it changes.
+| Feature | What happens | Main files |
+|---|---|---|
+| Authentication | Users can register, log in, stay logged in through `localStorage`, and log out. | `src/redux/authSlice.js`, `src/pages/Login.jsx`, `src/pages/Register.jsx`, `src/components/Navbar.jsx` |
+| Protected pages | Logged-out users are redirected to `/login`. Non-admin users are redirected away from `/admin`. | `src/components/ProtectedRoute.jsx`, `src/components/AdminRoute.jsx`, `src/App.jsx` |
+| Dashboard | Logged-in users see task counts for total, completed, in-progress, and pending tasks. | `src/pages/Dashboard.jsx`, `src/hooks/useTaskStats.js`, `src/redux/tasksSlice.js` |
+| User task management | Users can create, edit, delete, and update status for their own tasks. | `src/pages/Tasks.jsx`, `src/redux/tasksSlice.js` |
+| Search and sort | The tasks page stores search and sort values in the URL query string. | `src/pages/Tasks.jsx` |
+| Admin task management | Admins can view all tasks, load all users, and assign a task to a selected user. | `src/pages/AllTasks.jsx`, `src/components/AdminRoute.jsx` |
+| Theme switching | The app switches between light and dark mode and saves the choice in `localStorage`. | `src/context/ThemeContext.jsx`, `src/hooks/useLocalStorage.js`, `src/components/Navbar.jsx` |
+| Error boundary | Rendering errors inside the app show a fallback UI instead of crashing the whole page. | `src/components/ErrorBoundary.jsx`, `src/App.jsx` |
+| Loading UI | Skeleton cards show while tasks are loading. | `src/components/SkeletonCard.jsx`, `src/pages/Tasks.jsx` |
+
+## Core React Concepts Covered
+
+### Components and Props
+
+Components split the UI into reusable pieces. Props pass data into a component.
+
+Used in:
+
+| File | How it is used |
+|---|---|
+| `src/components/ProtectedRoute.jsx` | Receives `children` and either renders them or redirects. |
+| `src/components/AdminRoute.jsx` | Receives `children` and protects admin-only pages. |
+| `src/components/SkeletonCard.jsx` | Reusable loading placeholder. |
+| `src/components/ErrorBoundary.jsx` | Wraps children and displays fallback UI after render errors. |
+
+Key pattern:
+
+```jsx
+const ProtectedRoute = ({ children }) => {
+  const user = useSelector(state => state.auth.user);
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
+};
+```
+
+### State with `useState`
+
+`useState` stores local component state: form fields, modals, loading flags, and temporary UI values.
+
+Used in:
+
+| File | State |
+|---|---|
+| `src/pages/Login.jsx` | `email` and `password`. |
+| `src/pages/Register.jsx` | `name`, `email`, `password`, and `role`. |
+| `src/pages/Tasks.jsx` | Add-task form fields and `editingTask` modal state. |
+| `src/pages/AllTasks.jsx` | Local admin data, form state, loading, error, and submitting state. |
+| `src/hooks/useLocalStorage.js` | Stored value synced with `localStorage`. |
+
+Key pattern:
 
 ```jsx
 const [title, setTitle] = useState('');
-const [showModal, setShowModal] = useState(false);
-const [task, setTask] = useState(null);
+
+<input
+  value={title}
+  onChange={e => setTitle(e.target.value)}
+/>
 ```
 
-Updating an object — always spread, never mutate directly:
-```jsx
-// Wrong
-state.name = 'new';
+### Controlled Forms
 
-// Correct
-setTask(prev => ({ ...prev, name: 'new' }));
+A controlled form means React state is the source of truth for each input.
+
+Used in:
+
+| File | How it is used |
+|---|---|
+| `src/pages/Login.jsx` | Dispatches `loginUser` on submit. |
+| `src/pages/Register.jsx` | Dispatches `registerUser` on submit. |
+| `src/pages/Tasks.jsx` | Adds tasks and edits existing tasks. |
+| `src/pages/AllTasks.jsx` | Admin assigns a new task to a selected user. |
+
+Generic field updater pattern from `AllTasks.jsx`:
+
+```jsx
+const field = (key) => (e) =>
+  setForm(f => ({ ...f, [key]: e.target.value }));
+
+<input value={form.title} onChange={field('title')} />
 ```
 
-**Where in this project:** every component with a form or toggle.
+### Side Effects with `useEffect`
 
----
+`useEffect` runs code after render. In this app, it is used for fetching data and syncing theme state to the DOM.
 
-### useEffect
+Used in:
 
-Runs side effects after render. The dependency array controls when it re-runs.
+| File | Effect |
+|---|---|
+| `src/pages/Dashboard.jsx` | Fetches the logged-in user's tasks. |
+| `src/pages/Tasks.jsx` | Fetches the logged-in user's tasks. |
+| `src/pages/AllTasks.jsx` | Fetches all tasks and all users for the admin page. |
+| `src/context/ThemeContext.jsx` | Writes the current theme to `document.documentElement`. |
+
+Fetch pattern:
 
 ```jsx
-// Runs once on mount (empty array)
-useEffect(() => {
-  fetchData();
-}, []);
-
-// Runs whenever user changes
 useEffect(() => {
   if (user) dispatch(fetchTasks(user.id));
 }, [dispatch, user]);
-
-// Cleanup — runs before the effect fires again and on unmount
-useEffect(() => {
-  const id = setInterval(tick, 1000);
-  return () => clearInterval(id);
-}, []);
 ```
 
-**Where in this project:** `Dashboard.jsx`, `Tasks.jsx`, `AllTasks.jsx`, `ThemeContext.jsx`.
+DOM sync pattern:
 
----
+```jsx
+useEffect(() => {
+  document.documentElement.setAttribute('data-theme', theme);
+}, [theme]);
+```
 
-### useMemo
+### Derived Data and `useMemo`
 
-Memoizes an expensive calculation. Only recomputes when its dependencies change.
-Use it for derived data — filtering, sorting, transforming arrays.
+Derived data is calculated from existing state instead of stored separately. `useMemo` is useful when that calculation filters, sorts, or counts arrays.
+
+Used in:
+
+| File | Derived value |
+|---|---|
+| `src/pages/Tasks.jsx` | `visibleTasks` is derived from `tasks`, `search`, and `sortBy`. |
+| `src/hooks/useTaskStats.js` | Dashboard stats are derived from Redux task items. |
+
+Filter and sort pattern:
 
 ```jsx
 const visibleTasks = useMemo(() => {
   const filtered = tasks.filter(task =>
     task.title.toLowerCase().includes(search.toLowerCase())
   );
-  return [...filtered].sort((a, b) => {
-    if (sortBy === 'title') return a.title.localeCompare(b.title);
-    return 0;
-  });
-}, [tasks, search, sortBy]);
+
+  return [...filtered].sort((a, b) =>
+    a.title.localeCompare(b.title)
+  );
+}, [tasks, search]);
 ```
 
-**Rule:** do NOT put side effects inside useMemo. It is for pure calculations only.
+Important rule: `useMemo` is for pure calculations. Do not fetch data, set state, or change the DOM inside `useMemo`.
 
-**Where in this project:** `Tasks.jsx` (filter + sort), `useTaskStats.js`.
+### Context API
 
----
+Context shares non-Redux global state. TaskFlow uses it for the light/dark theme.
 
-### useContext
+Used in:
 
-Reads a value from the nearest matching Provider above in the tree.
+| File | How it is used |
+|---|---|
+| `src/context/ThemeContext.jsx` | Creates `ThemeContext`, provides `theme` and `toggleTheme`, exports `useTheme`. |
+| `src/components/Navbar.jsx` | Reads `theme` and `toggleTheme` for the theme button. |
+| `src/pages/Tasks.jsx` | Reads `theme` to style task cards and the edit modal. |
+| `src/hooks/useLocalStorage.js` | Stores the theme choice in `localStorage`. |
+
+Key pattern:
 
 ```jsx
-// 1. Create the context
 const ThemeContext = createContext();
 
-// 2. Provide it high up in the tree
+export const useTheme = () => useContext(ThemeContext);
+
 <ThemeContext.Provider value={{ theme, toggleTheme }}>
   {children}
 </ThemeContext.Provider>
-
-// 3. Consume it anywhere below
-const { theme, toggleTheme } = useContext(ThemeContext);
 ```
 
-**Where in this project:** `ThemeContext.jsx` creates and provides it. `Navbar.jsx` and `Tasks.jsx` consume it via the `useTheme()` custom hook.
+### Custom Hooks
 
----
+A custom hook is a function whose name starts with `use` and can call other hooks inside it.
 
-### useReducer
+Used in:
 
-An alternative to useState for complex state with multiple sub-values or actions.
+| Hook | Purpose |
+|---|---|
+| `src/hooks/useLocalStorage.js` | Reuses state that persists to `localStorage`. |
+| `src/hooks/useTaskStats.js` | Reuses task-stat calculations for the dashboard. |
+| `src/context/ThemeContext.jsx` | Exports `useTheme` as a custom context hook. |
 
-```jsx
-const initialState = { count: 0, step: 1 };
-
-function reducer(state, action) {
-  switch (action.type) {
-    case 'increment': return { ...state, count: state.count + action.payload };
-    case 'reset':     return initialState;
-    default:          return state;
-  }
-}
-
-const [state, dispatch] = useReducer(reducer, initialState);
-
-dispatch({ type: 'increment', payload: state.step });
-```
-
-**Pattern:** use `useState` for simple independent values; use `useReducer` when multiple values change together or the next state depends on the previous.
-
----
-
-## Redux Toolkit
-
-### Store Setup — `src/redux/store.js`
+Lazy initializer pattern from `useLocalStorage.js`:
 
 ```js
-import { configureStore } from '@reduxjs/toolkit';
-import authReducer from './authSlice';
-import tasksReducer from './tasksSlice';
+const [storedValue, setStoredValue] = useState(() => {
+  const item = localStorage.getItem(key);
+  return item !== null ? JSON.parse(item) : initialValue;
+});
+```
 
+### Redux Toolkit
+
+Redux stores app-wide auth and task data.
+
+Used in:
+
+| File | How it is used |
+|---|---|
+| `src/redux/store.js` | Combines `auth` and `tasks` reducers with `configureStore`. |
+| `src/redux/authSlice.js` | Handles login, register, logout, auth status, and auth errors. |
+| `src/redux/tasksSlice.js` | Handles fetching, adding, deleting, editing, and status updates for tasks. |
+| `src/main.jsx` | Wraps the app in Redux `Provider`. |
+| `src/pages/Login.jsx` | Dispatches `loginUser` and reads auth status/error. |
+| `src/pages/Register.jsx` | Dispatches `registerUser` and reads auth status/error. |
+| `src/pages/Dashboard.jsx` | Dispatches `fetchTasks` and reads auth user. |
+| `src/pages/Tasks.jsx` | Reads tasks and dispatches task CRUD thunks. |
+| `src/components/Navbar.jsx` | Reads auth user and dispatches `logout`. |
+
+Store setup:
+
+```js
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -210,145 +291,94 @@ export const store = configureStore({
 });
 ```
 
-### Connecting Redux to React — `src/main.jsx`
+Main auth thunks:
 
-```jsx
-import { Provider } from 'react-redux';
-import { store } from './redux/store';
+| Thunk | API action |
+|---|---|
+| `loginUser` | `GET /users?email=...&password=...` |
+| `registerUser` | Checks existing email, then `POST /users`. |
 
-root.render(
-  <Provider store={store}>
-    <App />
-  </Provider>
-);
-```
+Main task thunks:
 
----
+| Thunk | API action |
+|---|---|
+| `fetchTasks` | `GET /tasks?userId=:userId` |
+| `addTask` | `POST /tasks` |
+| `deleteTask` | `DELETE /tasks/:id` |
+| `updateTaskStatus` | `PATCH /tasks/:id` with only `status`. |
+| `updateTask` | `PATCH /tasks/:id` with edited task fields. |
 
-### createSlice
-
-Defines state shape, reducers (sync actions), and auto-generates action creators.
+Async thunk pattern:
 
 ```js
-import { createSlice } from '@reduxjs/toolkit';
-
-const authSlice = createSlice({
-  name: 'auth',
-  initialState: {
-    user: JSON.parse(localStorage.getItem('user')) || null,
-    status: 'idle',
-    error: null,
-  },
-  reducers: {
-    logout: (state) => {
-      state.user = null;
-      localStorage.removeItem('user');
-    },
-  },
-  extraReducers: (builder) => {
-    // async action results handled here
-  },
+export const fetchTasks = createAsyncThunk('tasks/fetch', async (userId) => {
+  const res = await axios.get(`http://localhost:3001/tasks?userId=${userId}`);
+  return res.data;
 });
-
-export const { logout } = authSlice.actions;
-export default authSlice.reducer;
 ```
 
-**Important:** Redux Toolkit uses Immer internally, so you CAN write mutating code like `state.user = null` inside a reducer. This is safe ONLY inside Redux Toolkit reducers.
-
----
-
-### createAsyncThunk
-
-Handles async operations (API calls). Auto-dispatches `pending`, `fulfilled`, and `rejected` actions.
+Extra reducers pattern:
 
 ```js
-export const loginUser = createAsyncThunk(
-  'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:3001/users?email=${email}&password=${password}`
-      );
-      if (response.data.length === 0)
-        return rejectWithValue('Invalid email or password');
-      return response.data[0]; // becomes action.payload in fulfilled
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+builder
+  .addCase(fetchTasks.pending, (state) => {
+    state.status = 'loading';
+  })
+  .addCase(fetchTasks.fulfilled, (state, action) => {
+    state.status = 'succeeded';
+    state.items = action.payload;
+  })
+  .addCase(fetchTasks.rejected, (state, action) => {
+    state.status = 'failed';
+    state.error = action.error.message;
+  });
 ```
 
-Handling the three states in `extraReducers`:
+### `useSelector` and `useDispatch`
 
-```js
-extraReducers: (builder) => {
-  builder
-    .addCase(loginUser.pending, (state) => {
-      state.status = 'loading';
-      state.error = null;
-    })
-    .addCase(loginUser.fulfilled, (state, action) => {
-      state.status = 'succeeded';
-      state.user = action.payload;
-      localStorage.setItem('user', JSON.stringify(action.payload));
-    })
-    .addCase(loginUser.rejected, (state, action) => {
-      state.status = 'failed';
-      state.error = action.payload; // the rejectWithValue argument
-    });
-},
-```
+React components connect to Redux with `useSelector` and `useDispatch`.
 
----
+Used in:
 
-### useSelector and useDispatch
+| File | How it is used |
+|---|---|
+| `src/pages/Login.jsx` | Selects auth status/error and dispatches `loginUser`. |
+| `src/pages/Register.jsx` | Selects auth status/error and dispatches `registerUser`. |
+| `src/pages/Dashboard.jsx` | Selects auth user and dispatches `fetchTasks`. |
+| `src/pages/Tasks.jsx` | Selects auth/tasks state and dispatches task actions. |
+| `src/components/Navbar.jsx` | Selects auth user and dispatches `logout`. |
+| `src/components/ProtectedRoute.jsx` | Selects auth user for redirects. |
+| `src/components/AdminRoute.jsx` | Selects auth user and role for admin protection. |
+
+Key pattern:
 
 ```jsx
-import { useSelector, useDispatch } from 'react-redux';
+const dispatch = useDispatch();
+const { user } = useSelector(state => state.auth);
+const { items: tasks, status } = useSelector(state => state.tasks);
 
-const Component = () => {
-  const dispatch = useDispatch();
-
-  const { user } = useSelector(state => state.auth);
-  const { items: tasks, status } = useSelector(state => state.tasks);
-
-  // Dispatch a sync action
-  const handleLogout = () => dispatch(logout());
-
-  // Dispatch an async thunk and check the result
-  const handleSubmit = async () => {
-    const result = await dispatch(loginUser({ email, password }));
-    if (result.meta.requestStatus === 'fulfilled') navigate('/');
-  };
-};
+dispatch(fetchTasks(user.id));
 ```
 
----
+### React Router
 
-## React Router
+React Router controls which page is shown for each URL and handles redirects.
 
-### Setup — `src/App.jsx`
+Used in:
 
-```jsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+| File | How it is used |
+|---|---|
+| `src/App.jsx` | Defines routes for login, register, dashboard, tasks, and admin page. |
+| `src/components/ProtectedRoute.jsx` | Redirects logged-out users to `/login`. |
+| `src/components/AdminRoute.jsx` | Redirects non-admin users away from `/admin`. |
+| `src/components/Navbar.jsx` | Uses `Link` and `useNavigate`. |
+| `src/pages/Login.jsx` | Uses `useNavigate` after successful login. |
+| `src/pages/Register.jsx` | Uses `useNavigate` after successful registration and `Link` to login. |
+| `src/pages/Tasks.jsx` | Uses `useSearchParams` for search and sort query params, and `Navigate` for admin redirect. |
 
-<BrowserRouter>
-  <Routes>
-    <Route path="/login" element={<Login />} />
-    <Route path="/" element={<Dashboard />} />
-    <Route path="/tasks" element={<Tasks />} />
-  </Routes>
-</BrowserRouter>
-```
-
-### Protecting Routes — `src/components/ProtectedRoute.jsx`
+Protected route pattern:
 
 ```jsx
-import { Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-
 const ProtectedRoute = ({ children }) => {
   const user = useSelector(state => state.auth.user);
   if (!user) return <Navigate to="/login" replace />;
@@ -356,304 +386,145 @@ const ProtectedRoute = ({ children }) => {
 };
 ```
 
-### Navigation hooks
+Route setup pattern:
 
 ```jsx
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+<Route path="/tasks" element={
+  <ProtectedRoute>
+    <Tasks />
+  </ProtectedRoute>
+} />
+```
 
-const navigate = useNavigate();
-navigate('/');
-navigate('/login', { replace: true }); // no back button entry
+URL search params pattern from `Tasks.jsx`:
 
+```jsx
 const [searchParams, setSearchParams] = useSearchParams();
 const search = searchParams.get('search') || '';
 
-setSearchParams(prev => {
+const setSearch = (value) => setSearchParams(prev => {
   const next = new URLSearchParams(prev);
-  next.set('search', value);
+  if (value) next.set('search', value);
+  else next.delete('search');
   return next;
 }, { replace: true });
-
-<Link to="/tasks">Tasks</Link>
 ```
 
----
+### Conditional Rendering
 
-## Context API
+Conditional rendering shows different UI based on state.
 
-Full pattern used in this project for theming:
+Used in:
 
-**`src/context/ThemeContext.jsx`**
-```jsx
-import { createContext, useContext, useEffect } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage';
+| File | Example |
+|---|---|
+| `src/components/Navbar.jsx` | Shows different links for logged-in, logged-out, admin, and regular users. |
+| `src/components/ProtectedRoute.jsx` | Redirects or renders children. |
+| `src/components/AdminRoute.jsx` | Redirects based on role. |
+| `src/pages/Login.jsx` | Shows auth errors and loading button text. |
+| `src/pages/Register.jsx` | Shows auth errors and loading button text. |
+| `src/pages/Tasks.jsx` | Shows skeleton loading cards, empty search results, edit modal, and admin redirect. |
+| `src/pages/AllTasks.jsx` | Shows loading, error, or admin task list. |
+| `src/components/ErrorBoundary.jsx` | Shows fallback UI after a render error. |
 
-const ThemeContext = createContext();
-
-export const useTheme = () => useContext(ThemeContext);
-
-export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useLocalStorage('theme', 'light');
-  const toggleTheme = () => setTheme(t => t === 'light' ? 'dark' : 'light');
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-};
-```
-
-**Key rule:** Context re-renders every consumer when its value changes. Keep contexts focused — one context per concern.
-
----
-
-## Custom Hooks
-
-A custom hook is a function whose name starts with `use` that calls other hooks inside it. It lets you reuse stateful logic across components.
-
-**`src/hooks/useLocalStorage.js`**
-```js
-import { useState } from 'react';
-
-const useLocalStorage = (key, initialValue) => {
-  const [storedValue, setStoredValue] = useState(() => {
-    try {
-      const item = localStorage.getItem(key);
-      return item !== null ? JSON.parse(item) : initialValue;
-    } catch {
-      return initialValue;
-    }
-  });
-
-  const setValue = (value) => {
-    const valueToStore = typeof value === 'function' ? value(storedValue) : value;
-    setStoredValue(valueToStore);
-    try {
-      localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch { }
-  };
-
-  return [storedValue, setValue];
-};
-
-export default useLocalStorage;
-```
-
-**`src/hooks/useTaskStats.js`**
-```js
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-
-export const useTaskStats = () => {
-  const tasks = useSelector(state => state.tasks.items);
-
-  return useMemo(() => ({
-    total:      tasks.length,
-    completed:  tasks.filter(t => t.status === 'completed').length,
-    inProgress: tasks.filter(t => t.status === 'in-progress').length,
-    pending:    tasks.filter(t => t.status === 'pending').length,
-  }), [tasks]);
-};
-```
-
-**Rules of Hooks — never break these:**
-- Only call hooks at the top level of a component — never inside loops, conditions, or nested functions
-- Only call hooks from React function components or other custom hooks
-
----
-
-## Class Components and Error Boundaries
-
-Error boundaries must be class components. They catch errors thrown during rendering of child components.
-
-**`src/components/ErrorBoundary.jsx`**
-```jsx
-import { Component } from 'react';
-
-class ErrorBoundary extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, message: '' };
-  }
-
-  // Runs during render phase — update state to show fallback UI
-  static getDerivedStateFromError(error) {
-    return { hasError: true, message: error.message };
-  }
-
-  // Runs after render — good place to log the error
-  componentDidCatch(error, info) {
-    console.error('ErrorBoundary caught:', error, info.componentStack);
-  }
-
-  handleReset = () => this.setState({ hasError: false, message: '' });
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div>
-          <h2>Something went wrong</h2>
-          <p>{this.state.message}</p>
-          <button onClick={this.handleReset}>Try again</button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-```
-
----
-
-## Controlled Forms
-
-In a controlled form, React state is the single source of truth for each input.
+Examples:
 
 ```jsx
-const [email, setEmail] = useState('');
+{error && <div style={{ color: 'red' }}>{error}</div>}
 
-<input
-  type="email"
-  value={email}
-  onChange={e => setEmail(e.target.value)}
-  required
-/>
-```
-
-For many fields, use a single object and a generic updater:
-```jsx
-const [form, setForm] = useState({ title: '', status: 'pending', priority: 'medium' });
-
-const field = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
-
-<input value={form.title} onChange={field('title')} />
-<select value={form.status} onChange={field('status')}>...</select>
-```
-
----
-
-## Conditional Rendering
-
-```jsx
-// && — only renders when condition is true
-{user && <span>Welcome, {user.name}</span>}
-
-// Ternary — one of two things
-{isLoading ? <Spinner /> : <Content />}
-
-// Ternary for longer blocks
 {status === 'loading'
   ? [1, 2, 3].map(i => <SkeletonCard key={i} />)
-  : tasks.map(task => <li key={task.id}>{task.title}</li>)
+  : visibleTasks.map(task => <li key={task.id}>{task.title}</li>)
 }
 
-// Early return — before the main JSX
-if (status === 'failed') return <div>Error: {error}</div>;
-if (!user) return <Navigate to="/login" replace />;
+{editingTask && <div className="modal">...</div>}
 ```
 
----
+### Class Components and Error Boundaries
 
-## Derived State
+Error boundaries must be class components. They catch rendering errors in child components and show fallback UI.
 
-Derived state is computed from existing state — you do not store it separately.
+Used in:
 
-```jsx
-// Wrong — storing something you can derive
-const [filteredTasks, setFilteredTasks] = useState([]);
-useEffect(() => {
-  setFilteredTasks(tasks.filter(t => t.title.includes(search)));
-}, [tasks, search]);
-
-// Correct — derive it during render, wrap in useMemo if expensive
-const filteredTasks = useMemo(
-  () => tasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase())),
-  [tasks, search]
-);
-```
-
----
-
-## Exam Pattern Cheat Sheet
-
-**Fetch data on mount:**
-```jsx
-useEffect(() => {
-  dispatch(fetchTasks(user.id));
-}, [dispatch, user.id]);
-```
-
-**Handle form submit and check if thunk succeeded:**
-```jsx
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  const result = await dispatch(loginUser({ email, password }));
-  if (result.meta.requestStatus === 'fulfilled') navigate('/');
-};
-```
-
-**Redirect unauthenticated users:**
-```jsx
-const user = useSelector(state => state.auth.user);
-if (!user) return <Navigate to="/login" replace />;
-return children;
-```
-
-**Update one item in a Redux array:**
-```js
-.addCase(updateTask.fulfilled, (state, action) => {
-  const index = state.items.findIndex(t => t.id === action.payload.id);
-  if (index !== -1) state.items[index] = action.payload;
-})
-```
-
-**Share state globally without Redux:**
-```jsx
-const MyContext = createContext();
-export const useMyContext = () => useContext(MyContext);
-
-export const MyProvider = ({ children }) => {
-  const [value, setValue] = useState('default');
-  return (
-    <MyContext.Provider value={{ value, setValue }}>
-      {children}
-    </MyContext.Provider>
-  );
-};
-```
-
-**useMemo vs useEffect:**
-- `useMemo` — computes and returns a value during render. No side effects.
-- `useEffect` — runs after render. Used for API calls, DOM changes, subscriptions.
-
-**When does a component re-render:**
-- Its own state changes (`useState`, `useReducer`)
-- Its parent re-renders and passes new props
-- A context it consumes changes (`useContext`)
-- A Redux selector it uses returns a new value (`useSelector`)
-
-**replace vs push in navigation:**
-- `navigate('/login')` — pushes, user can press back
-- `navigate('/login', { replace: true })` — replaces, back button skips this page
-- Always use `replace` on redirects (protected routes, post-login) so the user cannot navigate back to a page they should not be on
-
----
-
-## Key Files to Study
-
-| File | Concepts demonstrated |
+| File | How it is used |
 |---|---|
-| `src/redux/authSlice.js` | createSlice, createAsyncThunk, extraReducers, localStorage persistence |
-| `src/redux/tasksSlice.js` | Multiple async thunks (GET, POST, PATCH, DELETE), updating array items in state |
-| `src/pages/Tasks.jsx` | useState, useEffect, useMemo, useSelector, useDispatch, useSearchParams, useContext, controlled forms, conditional rendering, derived state |
-| `src/context/ThemeContext.jsx` | Full Context API pattern with a custom hook wrapper |
-| `src/hooks/useLocalStorage.js` | Custom hook, lazy useState initializer |
-| `src/components/ErrorBoundary.jsx` | Class component, getDerivedStateFromError, componentDidCatch |
-| `src/components/ProtectedRoute.jsx` | useSelector + Navigate for route protection |
-| `src/App.jsx` | BrowserRouter, Routes, Route, nested route protection |
+| `src/components/ErrorBoundary.jsx` | Defines `getDerivedStateFromError`, `componentDidCatch`, and a fallback render. |
+| `src/App.jsx` | Wraps the app and routes in `ErrorBoundary`. |
 
+Key methods:
+
+```jsx
+static getDerivedStateFromError(error) {
+  return { hasError: true, message: error.message };
+}
+
+componentDidCatch(error, info) {
+  console.error('ErrorBoundary caught:', error, info.componentStack);
+}
+```
+
+## API and Data Model
+
+The mock database is `db.json`.
+
+Main collections:
+
+| Collection | Purpose |
+|---|---|
+| `users` | Login/register data plus a `role` field. |
+| `tasks` | User-owned tasks with title, description, status, priority, deadline, and `userId`. |
+
+Example task:
+
+```json
+{
+  "title": "React Exam",
+  "description": "Prepare for React Exam",
+  "status": "in-progress",
+  "priority": "high",
+  "deadline": "2026-05-29",
+  "userId": "KtAKnSkOnU8"
+}
+```
+
+## Exam Quick Reference
+
+| Need to remember | Look at |
+|---|---|
+| Vite app entry point | `src/main.jsx` |
+| Redux `Provider` | `src/main.jsx` |
+| Redux store setup | `src/redux/store.js` |
+| Auth slice with `createAsyncThunk` | `src/redux/authSlice.js` |
+| Task CRUD slice | `src/redux/tasksSlice.js` |
+| Protected route | `src/components/ProtectedRoute.jsx` |
+| Admin-only route | `src/components/AdminRoute.jsx` |
+| Route definitions | `src/App.jsx` |
+| Login controlled form | `src/pages/Login.jsx` |
+| Register controlled form | `src/pages/Register.jsx` |
+| Task CRUD, search, sort, modal | `src/pages/Tasks.jsx` |
+| Admin Promise.all fetch | `src/pages/AllTasks.jsx` |
+| Theme context | `src/context/ThemeContext.jsx` |
+| Custom localStorage hook | `src/hooks/useLocalStorage.js` |
+| Custom stats hook with `useMemo` | `src/hooks/useTaskStats.js` |
+| Error boundary class component | `src/components/ErrorBoundary.jsx` |
+
+## Useful Commands
+
+```bash
+npm run dev
+npx json-server --watch db.json --port 3001
+npm run build
+npm run preview
+```
+
+## Study Notes
+
+- Use Redux for auth and tasks because many pages need the same user/task data.
+- Use Context for theme because it is a focused global UI preference.
+- Use `useState` for local forms, modal state, loading flags, and temporary inputs.
+- Use `useEffect` for API fetching and DOM synchronization.
+- Use `useMemo` for derived data such as filtered/sorted tasks and task stats.
+- Use `useSearchParams` when UI state should be reflected in the URL.
+- Use `Navigate` with `replace` for redirects so users do not go back to pages they should not access.
+- Use an error boundary when you need a fallback UI for rendering errors.
+- Keep derived data derived. For example, dashboard stats come from the task list and do not need their own Redux state.

@@ -2,12 +2,13 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
 export const fetchTasks = createAsyncThunk('tasks/fetch', async (userId) => {
-  const res = await axios.get(`http://localhost:3001/tasks?userId=${userId}`);
+  const params = new URLSearchParams({ userId: String(userId) });
+  const res = await axios.get(`http://localhost:3001/tasks?${params.toString()}`);
   return res.data;
 });
 
 export const addTask = createAsyncThunk('tasks/add', async ({ task, userId }) => {
-  const newTask = { ...task, userId, id: Date.now() };
+  const newTask = { ...task, userId, id: String(Date.now()) };
   const res = await axios.post('http://localhost:3001/tasks', newTask);
   return res.data;
 });

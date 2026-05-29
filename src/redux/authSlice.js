@@ -5,7 +5,8 @@ export const registerUser = createAsyncThunk(
     'auth/register',
     async ( {name, email, password, role}, {rejectWithValue}) => {
         try {
-            const response = await axios.get(`http://localhost:3001/users?email=${email}`);
+            const params = new URLSearchParams({ email });
+            const response = await axios.get(`http://localhost:3001/users?${params.toString()}`);
             if (response.data.length > 0) return rejectWithValue('Email already exists');
             const newUser = { name, email, password, role: role || 'user' };
             const res = await axios.post('http://localhost:3001/users', newUser);
@@ -21,7 +22,8 @@ export const loginUser = createAsyncThunk(
     'auth/login',
     async ( {email, password}, {rejectWithValue}) => {
         try {
-            const response = await axios.get(`http://localhost:3001/users?email=${email}&password=${password}`);
+            const params = new URLSearchParams({ email, password });
+            const response = await axios.get(`http://localhost:3001/users?${params.toString()}`);
             if (response.data.length == 0) return rejectWithValue('Invalid email or password');
             const user = response.data[0];
             return user;

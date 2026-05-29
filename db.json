@@ -1,0 +1,95 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "janicejuniour@gmail.com",
+      "password": "password123",
+      "name": "Janice",
+      "role": "admin"
+    },
+    {
+      "name": "janice",
+      "email": "janicewambuingugi@gmail.com",
+      "password": "Pass123",
+      "id": "KtAKnSkOnU8",
+      "role": "user"
+    },
+    {
+      "name": "Spencer",
+      "email": "spencerngugi@gmail.com",
+      "password": "Password123",
+      "id": "VOABqLqq0_0",
+      "role": "user"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Review React concepts",
+      "description": "Go through the new project guide.",
+      "status": "pending",
+      "userId": 1
+    },
+    {
+      "id": "2",
+      "title": "Build TaskFlow",
+      "description": "Follow the step-by-step guide.",
+      "status": "in-progress",
+      "userId": 1
+    },
+    {
+      "title": "Study for JS",
+      "description": "",
+      "status": "completed",
+      "userId": "KtAKnSkOnU8",
+      "id": "yzBtKb_DFxY",
+      "priority": "high",
+      "deadline": "2026-05-29"
+    },
+    {
+      "title": "Clean House",
+      "description": "",
+      "status": "completed",
+      "userId": "KtAKnSkOnU8",
+      "id": "KN9GGmjfdf0",
+      "priority": "low",
+      "deadline": "2026-05-30"
+    },
+    {
+      "title": "Cook Lunch",
+      "description": "",
+      "status": "pending",
+      "userId": "KtAKnSkOnU8",
+      "id": "86f5wK-qYEw",
+      "deadline": "2026-05-29"
+    },
+    {
+      "title": "Finish Literature Review",
+      "description": "",
+      "status": "pending",
+      "userId": "KtAKnSkOnU8",
+      "id": "kyws3vc5ivU",
+      "priority": "high",
+      "deadline": "2026-05-29"
+    },
+    {
+      "title": "React Exam",
+      "description": "Prepare for React Exam",
+      "status": "in-progress",
+      "priority": "high",
+      "deadline": "2026-05-29",
+      "userId": "KtAKnSkOnU8",
+      "id": "n0to6MzDEJk"
+    },
+    {
+      "title": "Finish Backend Test",
+      "description": "",
+      "status": "pending",
+      "priority": "medium",
+      "deadline": "2026-06-05",
+      "userId": "VOABqLqq0_0",
+      "id": "UA4F8aTXvYs"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
